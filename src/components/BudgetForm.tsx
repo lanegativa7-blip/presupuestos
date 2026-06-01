@@ -1,18 +1,9 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-
-const FormSchema = z.object({
-  descripcion: z.string().min(20, "Describe la obra con al menos 20 caracteres"),
-  iva_porcentaje: z.number(),
-});
-
-type FormValues = z.infer<typeof FormSchema>;
+import { useState } from "react";
 
 interface BudgetFormProps {
-  onSubmit: (data: FormValues) => void;
+  onSubmit: (data: { descripcion: string; iva_porcentaje: number }) => void;
   loading: boolean;
 }
 
@@ -20,34 +11,37 @@ const EXAMPLE =
   "Reforma completa de baño de 8m2 en Andorra la Vella. Cambio de azulejos, plato de ducha, inodoro y lavabo. Calidades medias-altas. Incluir mano de obra.";
 
 export default function BudgetForm({ onSubmit, loading }: BudgetFormProps) {
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: { iva_porcentaje: 4.5 },
-  });
+  const [descripcion, setDescripcion] = useState("");
+  const [iva, setIva] = useState(4.5);
+  const [error, setError] = useState("");
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (descripcion.trim().length < 20) {
+      setError("Describe la obra con al menos 20 caracteres");
+      return;
+    }
+    setError("");
+    onSubmit({ descripcion, iva_porcentaje: iva });
+  }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2">
           Descripción de la obra
         </label>
         <textarea
-          {...register("descripcion")}
+          value={descripcion}
+          onChange={(e) => setDescripcion(e.target.value)}
           rows={5}
           placeholder="Describe la reforma o construcción con el máximo detalle posible: tipo de obra, dimensiones, materiales, ubicación, calidades deseadas..."
           className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-800 text-sm shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition resize-none"
         />
-        {errors.descripcion && (
-          <p className="mt-1 text-xs text-red-500">{errors.descripcion.message}</p>
-        )}
+        {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
         <button
           type="button"
-          onClick={() => setValue("descripcion", EXAMPLE)}
+          onClick={() => setDescripcion(EXAMPLE)}
           className="mt-2 text-xs text-blue-500 hover:text-blue-700 underline"
         >
           Usar ejemplo de baño
@@ -63,22 +57,21 @@ export default function BudgetForm({ onSubmit, loading }: BudgetFormProps) {
             { label: "Andorra", sublabel: "IGI 4.5%", value: 4.5 },
             { label: "España", sublabel: "IVA 21%", value: 21 },
           ].map((opt) => (
-            <label
+            <button
               key={opt.value}
-              className="relative flex cursor-pointer rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:border-blue-400 transition has-[:checked]:border-blue-500 has-[:checked]:ring-2 has-[:checked]:ring-blue-100"
+              type="button"
+              onClick={() => setIva(opt.value)}
+              className={`relative flex cursor-pointer rounded-xl border p-4 shadow-sm transition text-left ${
+                iva === opt.value
+                  ? "border-blue-500 ring-2 ring-blue-100 bg-blue-50"
+                  : "border-gray-200 bg-white hover:border-blue-400"
+              }`}
             >
-              <input
-                type="radio"
-                value={String(opt.value)}
-                {...register("iva_porcentaje", { valueAsNumber: true })}
-                defaultChecked={opt.value === 4.5}
-                className="sr-only"
-              />
               <div>
                 <span className="block text-sm font-semibold text-gray-800">{opt.label}</span>
                 <span className="block text-xs text-gray-500">{opt.sublabel}</span>
               </div>
-            </label>
+            </button>
           ))}
         </div>
       </div>
