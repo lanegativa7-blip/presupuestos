@@ -69,7 +69,7 @@ export default function BudgetForm({ onSubmit, loading }: BudgetFormProps) {
             >
               <input
                 type="radio"
-                value={opt.value}
+                value={String(opt.value)}
                 {...register("iva_porcentaje", { valueAsNumber: true })}
                 defaultChecked={opt.value === 4.5}
                 className="sr-only"
