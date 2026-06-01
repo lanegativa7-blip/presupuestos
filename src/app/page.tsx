@@ -9,6 +9,7 @@ export default function Home() {
   const [budget, setBudget] = useState<Budget | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [formKey, setFormKey] = useState(0);
 
   async function handleSubmit(data: { descripcion: string; iva_porcentaje: number }) {
     setLoading(true);
@@ -69,7 +70,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                <BudgetForm onSubmit={handleSubmit} loading={loading} />
+                <BudgetForm key={formKey} onSubmit={handleSubmit} loading={loading} />
               </div>
               {error && (
                 <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4">
@@ -125,7 +126,7 @@ export default function Home() {
                 <p className="text-xs text-gray-500">Revisa los detalles y descarga el PDF cuando estés listo</p>
               </div>
             </div>
-            <BudgetResult budget={budget} onReset={() => setBudget(null)} />
+            <BudgetResult budget={budget} onReset={() => { setBudget(null); setFormKey(k => k + 1); }} />
           </div>
         )}
       </main>
