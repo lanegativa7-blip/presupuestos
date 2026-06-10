@@ -26,7 +26,8 @@ export default function Home() {
       const json = await res.json();
 
       if (!res.ok) {
-        throw new Error(json.error || "Error generando presupuesto");
+        const errMsg = typeof json.error === "string" ? json.error : JSON.stringify(json.error) || "Error generando presupuesto";
+        throw new Error(errMsg);
       }
 
       setBudget(json);

@@ -104,8 +104,15 @@ Reglas:
     const budget = BudgetSchema.parse(raw);
 
     return NextResponse.json(budget);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Error desconocido";
+  } catch (err: unknown) {
+    let message = "Error desconocido";
+    if (err instanceof Error) {
+      message = err.message;
+    } else if (typeof err === "object" && err !== null && "issues" in err) {
+      message = JSON.stringify((err as { issues: unknown }).issues);
+    } else {
+      message = String(err);
+    }
     return NextResponse.json({ error: `Error generando presupuesto: ${message}` }, { status: 500 });
   }
 }
