@@ -83,10 +83,23 @@ Reglas:
 
     const raw = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
 
-    // Recalcular IVA y total con el valor correcto, ignorando lo que devuelva Claude
+    // Recalcular todos los totales desde las partidas — nunca confiar en los números de Claude
+    const round2 = (n: number) => Math.round(n * 100) / 100;
+
+    for (const p of raw.partidas) {
+      p.total = round2(p.cantidad * p.precio_unitario);
+    }
+
+    raw.subtotal_materiales = round2(
+      raw.partidas.filter((p: { tipo: string }) => p.tipo === "material").reduce((s: number, p: { total: number }) => s + p.total, 0)
+    );
+    raw.subtotal_mano_obra = round2(
+      raw.partidas.filter((p: { tipo: string }) => p.tipo === "mano_obra").reduce((s: number, p: { total: number }) => s + p.total, 0)
+    );
+    raw.subtotal = round2(raw.subtotal_materiales + raw.subtotal_mano_obra);
     raw.iva_porcentaje = iva;
-    raw.iva_importe = Math.round(raw.subtotal * iva / 100 * 100) / 100;
-    raw.total = Math.round((raw.subtotal + raw.iva_importe) * 100) / 100;
+    raw.iva_importe = round2(raw.subtotal * iva / 100);
+    raw.total = round2(raw.subtotal + raw.iva_importe);
 
     const budget = BudgetSchema.parse(raw);
 
